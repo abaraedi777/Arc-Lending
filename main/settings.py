@@ -28,9 +28,9 @@ SECRET_KEY = 'django-insecure-0nkgg@s2a_94894sgcoew2qw_w!6*@fbuht&eduu&iqn$(r2rj
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config('DEBUG', cast=bool)
 
-ALLOWED_HOSTS = ["127.0.0.1", "astra-uo3u.onrender.com"]
+ALLOWED_HOSTS = ["127.0.0.1", "arc-lending.onrender.com"]
 
-CSRF_TRUSTED_ORIGINS = ["http://127.0.0.1", "https://astra-uo3u.onrender.com"]
+CSRF_TRUSTED_ORIGINS = ["http://127.0.0.1", "https://arc-lending.onrender.com"]
 
 
 
