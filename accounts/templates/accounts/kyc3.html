@@ -1,0 +1,206 @@
+{% load static %}
+{% csrf_token %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KYC Level 3 - Final Step</title>
+    
+    <style>
+        body {
+    margin: 0;
+    background: #0f1624;
+    font-family: Arial, sans-serif;
+    color: white;
+    display: flex;
+    justify-content: center;
+    padding: 40px 0;
+}
+
+.kyc-final-container {
+    background: #1b2433;
+    width: 750px;
+    padding: 30px;
+    border-radius: 10px;
+}
+
+h2 {
+    margin: 0;
+}
+
+.subtitle {
+    margin: 5px 0 20px;
+    color: #9ca3af;
+}
+
+.progress-bar {
+    width: 100%;
+    height: 4px;
+    background: #374151;
+    margin-bottom: 30px;
+    border-radius: 5px;
+    position: relative;
+}
+
+.progress-bar::after {
+    content: "";
+    width: 95%;
+    height: 100%;
+    background: #22d3ee;
+    position: absolute;
+    left: 0;
+    border-radius: 5px;
+}
+
+.review-box {
+    background: #111827;
+    border-radius: 8px;
+    padding: 25px;
+}
+
+.review-box h3 {
+    margin: 0 0 15px;
+    color: #cbd5e1;
+}
+
+.review-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 0;
+    font-size: 15px;
+}
+
+.review-item span {
+    color: #9ca3af;
+}
+
+.divider {
+    height: 1px;
+    background: #374151;
+    margin: 20px 0;
+    border-radius: 5px;
+}
+
+.checkbox {
+    display: flex;
+    align-items: center;
+    margin-bottom: 12px;
+    font-size: 14px;
+    color: #e5e7eb;
+}
+
+.checkbox input {
+    margin-right: 10px;
+}
+
+.continue-btn {
+    width: 100%;
+    padding: 16px;
+    margin-top: 25px;
+    border: none;
+    border-radius: 8px;
+    background: linear-gradient(90deg, #7c3aed, #06b6d4);
+    color: white;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+/* When enabled */
+button:not(:disabled) {
+  cursor: pointer;
+  background-color: #7c3aed; /* example color */
+  color: #fff;
+}
+
+/* When disabled */
+button:disabled {
+  cursor: not-allowed;
+  background-color: #999;   /* grayed out */
+  color: #eee;
+}
+
+    </style>
+</head>
+
+<body>
+
+<div class="kyc-final-container">
+
+    <h2>KYC Level 3 — Final Step</h2>
+    <p class="subtitle">Review your submitted information before final approval</p>
+
+    <div class="progress-bar"></div>
+
+    <div class="review-box">
+
+        <h3>Personal Information</h3>
+
+        <div class="review-item">
+            <span>Full Name:</span>
+            <strong>{{ profile.fullname }}</strong>
+        </div>
+
+        <div class="review-item">
+            <span>Email:</span>
+            <strong>{{ profile.email }}</strong>
+        </div>
+
+        <div class="review-item">
+            <span>Country:</span>
+            <strong>{{ profile.country }}</strong>
+        </div>
+
+        <div class="review-item">
+            <span>Date of Birth:</span>
+            <strong>{{ profile.dob }}</strong>
+        </div>
+
+        <div class="divider"></div>
+
+        <h3>Uploaded Documents</h3>
+
+        <div class="review-item">
+            <span>ID (Front): <a href="{{ profile.id_document_front.url }}" target="_blank" rel="noopener noreferrer">click to see</a></span>
+            <strong>Uploaded</strong>
+        </div>
+
+        <div class="review-item">
+            <span>ID (Back): <a href="{{ profile.id_document_back.url }}" target="_blank" rel="noopener noreferrer">click to see</a></span>
+            <strong>Uploaded</strong>
+        </div>
+
+        <div class="review-item">
+            <span>Selfie Verification: <a href="{{ profile.selfie.url }}" target="_blank" rel="noopener noreferrer">click to see</a></span>
+            <strong>Completed</strong>
+        </div>
+
+        <div class="divider"></div>
+
+        <h3>Final Consent</h3>
+
+        <label class="checkbox">
+            <input type="checkbox" id="cb-confirm">
+            I confirm that all the information and documents provided are accurate.
+        </label>
+
+        <label class="checkbox">
+            <input type="checkbox" id="cb-authorize">
+            I authorize the platform to verify my identity for compliance purposes.
+        </label>
+
+    </div>
+
+    <button class="continue-btn" id="confirm-btn" disabled>Sign in Wallet</button>
+
+</div>
+
+<script>
+    const VERIFICATION_URL = "{% url 'accounts:verify_signature' %}";
+    const WALLET = "{{ wallet }}";
+    const NONCE = "{{ nonce }}";
+</script>
+<script src="{% static 'accounts/js/kyc3.js' %}"></script>
+</body>
+</html>

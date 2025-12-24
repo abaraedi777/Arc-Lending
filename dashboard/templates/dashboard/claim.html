@@ -1,0 +1,212 @@
+{% extends "dashboard/dashboard-home.html" %}
+{% load humanize %}
+{% load static %}
+
+
+{% block body %}
+{% csrf_token %}
+
+<style>
+    /* PAGE */
+    .container {
+        max-width: 650px;
+        margin: 60px auto;
+        padding: 20px;
+    }
+
+    .card {
+        background: rgba(255,255,255,0.04);
+        border: 1px solid rgba(255,255,255,0.08);
+        padding: 30px;
+        border-radius: 18px;
+        backdrop-filter: blur(14px);
+        margin-bottom: 25px;
+    }
+
+    .title {
+        font-size: 26px;
+        font-weight: 700;
+        margin-bottom: 15px;
+    }
+
+    .sub {
+        font-size: 14px;
+        opacity: 0.8;
+        margin-bottom: 20px;
+    }
+
+    /* SPINNER */
+    .spinner {
+        margin: 20px auto;
+        width: 55px;
+        height: 55px;
+        border: 5px solid rgba(255,255,255,0.1);
+        border-top: 5px solid #4A9EFF;
+        border-radius: 50%;
+        animation: spin 0.9s linear infinite;
+        transition: 0.5s ease;
+    }
+
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+
+    .log-box {
+        background: rgba(255,255,255,0.03);
+        border: 1px solid rgba(255,255,255,0.07);
+        padding: 15px;
+        border-radius: 12px;
+        margin-top: 18px;
+        font-size: 14px;
+        max-height: 160px;
+        overflow-y: auto;
+        line-height: 1.55;
+    }
+
+    .log-item {
+        margin-bottom: 10px;
+        opacity: 0.85;
+    }
+
+    /* CLAIM BUTTON */
+    .btn {
+        width: 100%;
+        padding: 15px;
+        background: linear-gradient(135deg,#4A9EFF,#1F6FEB);
+        border: none;
+        border-radius: 12px;
+        color: #fff;
+        font-weight: 600;
+        font-size: 16px;
+        cursor: pointer;
+        margin-top: 25px;
+        transition: 0.2s;
+        display: none;
+    }
+
+    .btn:hover {
+        opacity: 0.9;
+    }
+
+    /* SUCCESS */
+    .success {
+        display: none;
+        margin-top: 20px;
+        padding: 14px;
+        background: rgba(46,204,113,0.12);
+        border-left: 3px solid #2ECC71;
+        border-radius: 10px;
+        font-size: 15px;
+        color: #2ECC71;
+        font-weight: 600;
+    }
+
+    /* LOAN AMOUNT CARD */
+    #loanAmountCard {
+        display: none;
+        text-align: center;
+        font-size: 22px;
+        font-weight: 600;
+        padding: 25px;
+    }
+
+</style>
+
+
+
+<div class="container">
+
+    {% if loan.withdrawn == False %}
+    <div class="card" id="loadingCard">
+        <div class="title">Claim Approved Loan</div>
+        <div class="sub">We are verifying your eligibility before you claim your loan.
+            <br><br><strong>Do not refresh this page.</strong>
+        </div>
+
+        <div class="spinner" id="spinner"></div>
+
+        <div class="log-box" id="logBox"></div>
+        
+    </div>
+    {% endif %}
+
+    <div class="card" id="loanAmountCard">
+        {% if loan.status == "approved"  %}
+        Approved Loan Amount: <br><br> <span style="font-size:30px;color:#4A9EFF;">${{ loan.approved_amount|floatformat:2|intcomma }} {{ loan.asset_name }}</span>
+        {% elif loan.status == "rejected" %}
+        <span style="font-size:30px;color:red;">LOAN REJECTED</span>
+        {% endif %}
+    </div>
+
+    {% if loan.status == "approved" and loan.withdrawn == False %}
+    <button class="btn" id="claimBtn">Claim Loan</button>
+    {% elif loan.status == "approved" and loan.withdrawn == True %}
+    <button class="btn" id="claimBtn" disabled>Claimed</button>
+    {% endif %}
+
+    <div class="success" id="successMsg">🎉 Loan claimed successfully!</div>
+
+</div>
+
+
+
+<script src="https://cdn.jsdelivr.net/npm/web3@1.10.0/dist/web3.min.js"></script>
+
+<script>
+  const LOAN_CONTRACT_ADDRESS = "{{ LOAN_CONTRACT_ADDRESS }}";
+  const WALLET = "{{ loan.borrower.wallet }}";
+  const ONCHAIN_LOAN_ID = "{{ loan.onchain_loan_id }}";
+  const LOAN_ID = "{{ loan.id }}";
+  const CLAIM_URL = "{% url 'dashboard:claim_view' loan_id=loan.id %}";
+</script>
+
+<script>
+
+/* LOADING LOGIC */
+const logs = [
+    "Checking wallet age…",
+    "Checking on-chain transaction history…",
+    "Checking wallet balance…",
+    "Checking credit score…",
+    "Checking AML/KYC clearance…",
+    "Preparing loan for claim…"
+];
+
+let index = 0;
+const logBox = document.getElementById("logBox");
+const spinner = document.getElementById("spinner");
+
+function runChecks() {
+    if (index < logs.length) {
+        let item = document.createElement("div");
+        item.className = "log-item";
+        item.textContent = logs[index];
+        logBox.appendChild(item);
+        index++;
+        logBox.scrollTop = logBox.scrollHeight;
+        setTimeout(runChecks, 1200);
+    } else {
+        stopSpinner();
+        showLoanAmount();
+    }
+}
+
+function stopSpinner() {
+    spinner.style.animation = "none";
+    spinner.style.opacity = "0";
+    setTimeout(() => spinner.style.display = "none", 2000);
+}
+
+function showLoanAmount() {
+    document.getElementById("loanAmountCard").style.display = "block";
+    document.getElementById("claimBtn").style.display = "block";
+}
+
+runChecks();
+
+
+</script>
+
+<script src="{% static 'dashboard/js/claim.js' %}" type="module"></script>
+
+{% endblock body %}

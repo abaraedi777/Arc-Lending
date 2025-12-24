@@ -1,0 +1,399 @@
+{% load static %}
+
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>KYC Level 1 — Basic Info</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+  :root{
+    --bg1:#0f1724;
+    --glass:rgba(255,255,255,0.05);
+    --muted:#9aa4b2;
+    --radius:16px;
+    --accent1:#7c3aed;
+    --accent2:#06b6d4;
+    font-family:'Inter',sans-serif;
+  }
+  html,body{height:100%;margin:0;background:var(--bg1);color:#e6eef6}
+
+  /* Background gradient + blur */
+  .bg{
+    position:fixed;inset:0;z-index:-1;
+    background:
+      radial-gradient(1200px 600px at 10% 20%, rgba(124,58,237,0.08), transparent 20%),
+      radial-gradient(900px 500px at 80% 90%, rgba(6,182,212,0.08), transparent 20%),
+      linear-gradient(180deg,#071025,#071a2a);
+  }
+  .bg::after{
+    content:"";position:absolute;inset:0;
+    backdrop-filter:blur(8px);opacity:0.9;
+  }
+
+  .container{
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:30px;
+  }
+
+  .card{
+    width:100%;
+    max-width:640px;
+    padding:34px;
+    background:rgba(255,255,255,0.03);
+    border:1px solid rgba(255,255,255,0.05);
+    border-radius:var(--radius);
+    box-shadow:0 10px 28px rgba(0,0,0,0.4);
+  }
+
+  h1{
+    margin:0 0 6px;font-size:22px;font-weight:700;color:#fff;
+  }
+  .subtitle{color:var(--muted);font-size:14px;margin-bottom:24px}
+
+  /* Progress bar */
+  .progress{
+    width:100%;height:6px;border-radius:8px;
+    background:rgba(255,255,255,0.06);
+    margin:18px 0 32px;overflow:hidden;
+  }
+  .progress-fill{
+    height:100%;
+    width:33%;
+    background:linear-gradient(90deg,var(--accent1),var(--accent2));
+  }
+
+  .form-group{
+    display:flex;
+    flex-direction:column;
+    margin-bottom:18px;
+  }
+  label{
+    font-size:14px;margin-bottom:6px;font-weight:600;color:#c6d4e3;
+  }
+  input,select{
+    padding:12px 14px;
+    background:rgba(255,255,255,0.04);
+    border:1px solid rgba(255,255,255,0.06);
+    border-radius:12px;
+    color:#fff;
+    font-size:14px;
+    outline:none;
+    transition:border .15s ease;
+  }
+  input:focus,select:focus{
+    border-color:rgba(124,58,237,0.4);
+    background:rgba(255,255,255,0.06);
+  }
+
+  .btn{
+    display:inline-block;
+    padding:12px 20px;
+    border-radius:12px;
+    border:0;
+    font-size:15px;
+    font-weight:600;
+    cursor:pointer;
+    transition:opacity .15s ease;
+  }
+  .btn.primary{
+    background:linear-gradient(90deg,var(--accent1),var(--accent2));
+    color:#021014;
+    width:100%;
+    margin-top:10px;
+  }
+  .btn.secondary{
+    background:transparent;
+    border:1px solid rgba(255,255,255,0.08);
+    color:#c6d4e3;
+    margin-top:10px;
+    width:100%;
+  }
+  .btn:hover{opacity:0.9}
+
+  .wallet-box{
+    margin-bottom:22px;
+    padding:12px 14px;
+    background:rgba(255,255,255,0.04);
+    border-radius:10px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    font-size:14px;
+  }
+  .address{font-family:monospace;background:rgba(0,0,0,0.3);padding:6px 10px;border-radius:8px}
+
+  .error{
+    color:#ffaaaa;font-size:13px;margin-top:4px;display:none;
+  }
+
+  /* Responsive */
+  @media(max-width:520px){
+    .card{padding:24px}
+  }
+</style>
+</head>
+
+<body>
+<div class="bg"></div>
+
+<main class="container">
+  <section class="card">
+    <h1>KYC Level 1</h1>
+    <div class="subtitle">Provide your basic information to continue <span style="font-size: x-small;">(You do not have to provide accurate info)</span></div>
+
+    <!-- Progress bar -->
+    <div class="progress">
+      <div class="progress-fill"></div>
+    </div>
+
+    <!-- Wallet info -->
+    <div class="wallet-box">
+      <div>Connected wallet</div>
+      <div class="address" id="walletAddr">0x0000...0000</div>
+    </div>
+
+    <!-- Form -->
+    <form id="kycForm" method="post">
+        {% csrf_token %}
+        <input type="hidden" name="wallet" value="{{ wallet }}">
+      <div class="form-group">
+        <label>Full Name</label>
+        <input type="text" id="fullName" placeholder="Enter your full legal name" required name="fullName">
+        <div class="error" id="errName">Please enter your full name.</div>
+      </div>
+
+      <div class="form-group">
+        <label>Email Address</label>
+        <input type="email" id="email" placeholder="name@example.com" required name="email">
+        <div class="error" id="errEmail">Enter a valid email.</div>
+      </div>
+
+      <div class="form-group">
+        <label>Country</label>
+        <select id="country" required style="background-color: #0f1724;" name="country">
+        <option value="">Select Country</option>
+        <option>Afghanistan</option>
+        <option>Albania</option>
+        <option>Algeria</option>
+        <option>Andorra</option>
+        <option>Angola</option>
+        <option>Antigua and Barbuda</option>
+        <option>Argentina</option>
+        <option>Armenia</option>
+        <option>Australia</option>
+        <option>Austria</option>
+        <option>Azerbaijan</option>
+        <option>Bahamas</option>
+        <option>Bahrain</option>
+        <option>Bangladesh</option>
+        <option>Barbados</option>
+        <option>Belarus</option>
+        <option>Belgium</option>
+        <option>Belize</option>
+        <option>Benin</option>
+        <option>Bhutan</option>
+        <option>Bolivia</option>
+        <option>Bosnia and Herzegovina</option>
+        <option>Botswana</option>
+        <option>Brazil</option>
+        <option>Brunei</option>
+        <option>Bulgaria</option>
+        <option>Burkina Faso</option>
+        <option>Burundi</option>
+        <option>Cabo Verde</option>
+        <option>Cambodia</option>
+        <option>Cameroon</option>
+        <option>Canada</option>
+        <option>Central African Republic</option>
+        <option>Chad</option>
+        <option>Chile</option>
+        <option>China</option>
+        <option>Colombia</option>
+        <option>Comoros</option>
+        <option>Congo (Congo-Brazzaville)</option>
+        <option>Costa Rica</option>
+        <option>Côte d’Ivoire</option>
+        <option>Croatia</option>
+        <option>Cuba</option>
+        <option>Cyprus</option>
+        <option>Czech Republic</option>
+        <option>Democratic Republic of the Congo</option>
+        <option>Denmark</option>
+        <option>Djibouti</option>
+        <option>Dominica</option>
+        <option>Dominican Republic</option>
+        <option>Ecuador</option>
+        <option>Egypt</option>
+        <option>El Salvador</option>
+        <option>Equatorial Guinea</option>
+        <option>Eritrea</option>
+        <option>Estonia</option>
+        <option>Eswatini</option>
+        <option>Ethiopia</option>
+        <option>Fiji</option>
+        <option>Finland</option>
+        <option>France</option>
+        <option>Gabon</option>
+        <option>Gambia</option>
+        <option>Georgia</option>
+        <option>Germany</option>
+        <option>Ghana</option>
+        <option>Greece</option>
+        <option>Grenada</option>
+        <option>Guatemala</option>
+        <option>Guinea</option>
+        <option>Guinea-Bissau</option>
+        <option>Guyana</option>
+        <option>Haiti</option>
+        <option>Honduras</option>
+        <option>Hungary</option>
+        <option>Iceland</option>
+        <option>India</option>
+        <option>Indonesia</option>
+        <option>Iran</option>
+        <option>Iraq</option>
+        <option>Ireland</option>
+        <option>Israel</option>
+        <option>Italy</option>
+        <option>Jamaica</option>
+        <option>Japan</option>
+        <option>Jordan</option>
+        <option>Kazakhstan</option>
+        <option>Kenya</option>
+        <option>Kiribati</option>
+        <option>Kuwait</option>
+        <option>Kyrgyzstan</option>
+        <option>Laos</option>
+        <option>Latvia</option>
+        <option>Lebanon</option>
+        <option>Lesotho</option>
+        <option>Liberia</option>
+        <option>Libya</option>
+        <option>Liechtenstein</option>
+        <option>Lithuania</option>
+        <option>Luxembourg</option>
+        <option>Madagascar</option>
+        <option>Malawi</option>
+        <option>Malaysia</option>
+        <option>Maldives</option>
+        <option>Mali</option>
+        <option>Malta</option>
+        <option>Marshall Islands</option>
+        <option>Mauritania</option>
+        <option>Mauritius</option>
+        <option>Mexico</option>
+        <option>Micronesia</option>
+        <option>Moldova</option>
+        <option>Monaco</option>
+        <option>Mongolia</option>
+        <option>Montenegro</option>
+        <option>Morocco</option>
+        <option>Mozambique</option>
+        <option>Myanmar</option>
+        <option>Namibia</option>
+        <option>Nauru</option>
+        <option>Nepal</option>
+        <option>Netherlands</option>
+        <option>New Zealand</option>
+        <option>Nicaragua</option>
+        <option>Niger</option>
+        <option>Nigeria</option>
+        <option>North Korea</option>
+        <option>North Macedonia</option>
+        <option>Norway</option>
+        <option>Oman</option>
+        <option>Pakistan</option>
+        <option>Palau</option>
+        <option>Palestine State</option>
+        <option>Panama</option>
+        <option>Papua New Guinea</option>
+        <option>Paraguay</option>
+        <option>Peru</option>
+        <option>Philippines</option>
+        <option>Poland</option>
+        <option>Portugal</option>
+        <option>Qatar</option>
+        <option>Romania</option>
+        <option>Russia</option>
+        <option>Rwanda</option>
+        <option>Saint Kitts and Nevis</option>
+        <option>Saint Lucia</option>
+        <option>Saint Vincent and the Grenadines</option>
+        <option>Samoa</option>
+        <option>San Marino</option>
+        <option>Sao Tome and Principe</option>
+        <option>Saudi Arabia</option>
+        <option>Senegal</option>
+        <option>Serbia</option>
+        <option>Seychelles</option>
+        <option>Sierra Leone</option>
+        <option>Singapore</option>
+        <option>Slovakia</option>
+        <option>Slovenia</option>
+        <option>Solomon Islands</option>
+        <option>Somalia</option>
+        <option>South Africa</option>
+        <option>South Korea</option>
+        <option>South Sudan</option>
+        <option>Spain</option>
+        <option>Sri Lanka</option>
+        <option>Sudan</option>
+        <option>Suriname</option>
+        <option>Sweden</option>
+        <option>Switzerland</option>
+        <option>Syria</option>
+        <option>Tajikistan</option>
+        <option>Tanzania</option>
+        <option>Thailand</option>
+        <option>Timor-Leste</option>
+        <option>Togo</option>
+        <option>Tonga</option>
+        <option>Trinidad and Tobago</option>
+        <option>Tunisia</option>
+        <option>Turkey</option>
+        <option>Turkmenistan</option>
+        <option>Tuvalu</option>
+        <option>Uganda</option>
+        <option>Ukraine</option>
+        <option>United Arab Emirates</option>
+        <option>United Kingdom</option>
+        <option>United States</option>
+        <option>Uruguay</option>
+        <option>Uzbekistan</option>
+        <option>Vanuatu</option>
+        <option>Vatican City</option>
+        <option>Venezuela</option>
+        <option>Vietnam</option>
+        <option>Yemen</option>
+        <option>Zambia</option>
+        <option>Zimbabwe</option>
+      </select>
+
+        <div class="error" id="errCountry">Select your country.</div>
+      </div>
+
+      <div class="form-group">
+        <label>Date of Birth</label>
+        <input type="date" id="dob" required name="dob">
+        <div class="error" id="errDob">Enter a valid date of birth.</div>
+      </div>
+
+      <button type="submit" class="btn primary">Continue to Step 2</button>
+      <!-- <button type="button" class="btn secondary" id="saveBTN">Save & Finish Later</button> -->
+    </form>
+  </section>
+</main>
+
+<script>
+  const WALLET = "{{ wallet }}";
+</script>
+<script src="{% static 'accounts/js/kyc1.js' %}"></script>
+
+</body>
+</html>

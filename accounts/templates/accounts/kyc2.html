@@ -1,0 +1,381 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>KYC Level 2 — Document Verification</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet"/>
+
+<style>
+  :root{
+    --bg1:#0f1724;
+    --glass:rgba(255,255,255,0.05);
+    --muted:#9aa4b2;
+    --radius:16px;
+    --accent1:#7c3aed;
+    --accent2:#06b6d4;
+    font-family:'Inter',sans-serif;
+  }
+  html,body{height:100%;margin:0;background:var(--bg1);color:#e6eef6;}
+
+  .bg{
+    position:fixed;inset:0;z-index:-1;
+    background:
+      radial-gradient(1200px 600px at 10% 20%, rgba(124,58,237,0.08), transparent 20%),
+      radial-gradient(900px 500px at 80% 90%, rgba(6,182,212,0.08), transparent 20%),
+      linear-gradient(180deg,#071025,#071a2a);
+  }
+  .bg::after{
+    content:"";position:absolute;inset:0;
+    backdrop-filter:blur(8px);opacity:0.85;
+  }
+
+  .container{
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:30px;
+  }
+
+  .card{
+    width:100%;
+    max-width:680px;           /* reduced from 720 to tighten layout */
+    padding:34px 30px;         /* reduced side padding */
+    background:rgba(255,255,255,0.03);
+    border:1px solid rgba(255,255,255,0.05);
+    border-radius:var(--radius);
+    box-shadow:0 10px 28px rgba(0,0,0,0.4);
+  }
+
+  h1{
+    margin:0 0 6px;
+    font-size:22px;
+    font-weight:700;
+    color:#fff;
+  }
+  .subtitle{
+    color:var(--muted);
+    font-size:14px;
+    margin-bottom:20px;
+  }
+
+  /* Progress bar */
+  .progress{
+    width:100%;height:6px;border-radius:8px;
+    background:rgba(255,255,255,0.06);
+    margin:14px 0 26px;        /* tightened spacing */
+    overflow:hidden;
+  }
+  .progress-fill{
+    height:100%;width:66%;
+    background:linear-gradient(90deg,var(--accent1),var(--accent2));
+  }
+
+  /* Section titles */
+  .section-title{
+    margin-top:20px;          /* aligned better */
+    margin-bottom:8px;
+    font-size:15px;
+    font-weight:700;
+    color:#dce9f2;
+  }
+
+  /* Dropdown */
+  select{
+    width:100%;
+    padding:12px;
+    border-radius:10px;
+    background:rgba(255,255,255,0.05);
+    border:1px solid rgba(255,255,255,0.1);
+    color:#fff;
+    margin-bottom:12px;        /* reduced spacing */
+  }
+
+  /* Upload box corrections */
+  .upload-box{
+    border:2px dashed rgba(255,255,255,0.15);
+    background:rgba(255,255,255,0.03);
+    border-radius:14px;
+    padding:26px;              /* reduced from 32px */
+    text-align:center;
+    margin-bottom:18px;        /* reduced bottom spacing */
+    transition:border .2s ease, background .2s ease;
+    width: 100%;
+    box-sizing: border-box;
+    display: block;
+  }
+  .upload-box.drag{
+    border-color:var(--accent2);
+    background:rgba(255,255,255,0.08);
+  }
+  .upload-box input{
+    display:none;
+  }
+  .upload-title{
+    font-size:14.5px;          /* slightly smaller for balance */
+    font-weight:600;
+    margin-bottom:5px;
+  }
+  .upload-label{
+    font-size:12.5px;
+    color:var(--muted);
+  }
+  .file-name{
+    margin-top:8px;
+    font-size:13px;
+    color:#cde4ff;
+  }
+
+  .error{
+    color:#ffaaaa;font-size:13px;margin-top:4px;display:none;
+  }
+
+  .btn{
+    display:inline-block;
+    padding:12px 20px;
+    border-radius:12px;
+    border:0;
+    font-size:15px;
+    font-weight:600;
+    cursor:pointer;
+    transition:opacity .15s ease;
+  }
+  .btn.primary{
+    background:linear-gradient(90deg,var(--accent1),var(--accent2));
+    color:#021014;width:100%;margin-top:18px;
+  }
+  .btn.secondary{
+    background:transparent;
+    border:1px solid rgba(255,255,255,0.08);
+    color:#c6d4e3;width:100%;margin-top:10px;
+  }
+  .btn:hover{opacity:0.9}
+
+  @media(max-width:520px){
+    .card{padding:24px}
+    .upload-box{padding:22px;}
+  }
+</style>
+
+</head>
+<body>
+<div class="bg"></div>
+
+<main class="container">
+<section class="card">
+
+  <h1>KYC Level 2</h1>
+  <div class="subtitle">Upload your identity document and selfie for verification</div>
+
+  <!-- Progress -->
+  <div class="progress"><div class="progress-fill"></div></div>
+
+  <!-- Document type -->
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <input type="hidden" name="wallet" value="{{ wallet }}">
+        <div class="section-title">Select Document Type</div>
+        <select id="docType" style="background-color: #0f1724;" required name="docType">
+            <option value="">Choose Document</option>
+            <option>National ID Card</option>
+            <option>International Passport</option>
+            <option>Driver's License</option>
+            <option>Voter's Card</option>
+            <option>Residence Permit</option>
+            <option>Social Security Card</option>
+            <option>Tax Identification Number (TIN)</option>
+            <option>Work/Student ID</option>
+        </select>
+        <div class="error" id="errDocType">Select a document type.</div>
+
+        <!-- ID Front Upload -->
+        <div class="section-title">Upload ID (Front)</div>
+        <label class="upload-box" id="boxFront">
+            <input type="file" id="idFront" accept="image/*" required name="idFront">
+            <div class="upload-title">Drop file here or click to upload</div>
+            <div class="upload-label">Accepted: PNG, JPG (max 4MB)</div>
+            <div class="file-name" id="nameFront"></div>
+        </label>
+        <div class="error" id="errFront">Upload the front of your ID.</div>
+
+        <!-- ID Back Upload -->
+        <div class="section-title">Upload ID (Back)</div>
+        <label class="upload-box" id="boxBack">
+            <input type="file" id="idBack" accept="image/*" required name="idBack">
+            <div class="upload-title">Drop file here or click to upload</div>
+            <div class="upload-label">Accepted: PNG, JPG (max 4MB)</div>
+            <div class="file-name" id="nameBack"></div>
+        </label>
+        <div class="error" id="errBack">Upload the back of your ID.</div>
+
+        <!-- Selfie -->
+        <div class="section-title">Selfie Verification</div>
+        <label class="upload-box" id="boxSelfie" style="position: relative; overflow:hidden;">
+            <video id="selfieVideo" autoplay playsinline style="width:100%; border-radius:12px; display:none;"></video>
+
+            <canvas id="selfieCanvas" style="display:none;"></canvas>
+
+            <input type="file" id="selfie" style="display:none;" accept="image/jpeg" required name="selfie"/>
+
+            <div id="selfiePlaceholder">
+                <div class="upload-title">Tap to open camera</div>
+                <div class="upload-label">Selfie required (no glasses, no hats)</div>
+            </div>
+
+            <button id="snapSelfieBtn" 
+                    style="display:none; margin-top:10px;"
+                    class="btn secondary">
+                Snap Photo
+            </button>
+
+            <img id="selfiePreview" 
+                style="display:none; width:100%; border-radius:12px; margin-top:10px;">
+        </label>
+        <div class="error" id="errSelfie">Take a selfie photo.</div>
+
+        <button class="btn primary" type="submit">Continue to Final Step</button>
+        <!-- <button class="btn secondary">Save & Finish Later</button> -->
+    </form>
+</section>
+</main>
+
+
+<script>
+// =============== SELFIE CAMERA CAPTURE LOGIC =================== //
+
+const selfieBox = document.getElementById("boxSelfie");
+const selfieVideo = document.getElementById("selfieVideo");
+const selfieCanvas = document.getElementById("selfieCanvas");
+const selfiePreview = document.getElementById("selfiePreview");
+const selfieInput = document.getElementById("selfie");
+const selfiePlaceholder = document.getElementById("selfiePlaceholder");
+const snapBtn = document.getElementById("snapSelfieBtn");
+
+let selfieStream = null;
+
+// Open camera when user clicks the box
+selfieBox.addEventListener("click", async (e) => {
+    // selfieInput.disabled = true;
+    // setTimeout(function() { selfieInput.disabled = false; }, 1);
+    e.preventDefault()
+
+    if (!selfieStream) {
+        try {
+            selfieStream = await navigator.mediaDevices.getUserMedia({
+                video: { facingMode: "user", width: 720, height: 720 },
+                audio: false
+            });
+
+            selfieVideo.srcObject = selfieStream;
+
+            selfieVideo.style.display = "block";
+            snapBtn.style.display = "block";
+            selfiePlaceholder.style.display = "none";
+            selfiePreview.style.display = "none";
+
+        } catch (err) {
+            alert("Camera access denied. Please allow camera permission.");
+            console.error(err);
+        }
+    }
+});
+
+// Snap button
+snapBtn.addEventListener("click", () => {
+    const track = selfieStream.getVideoTracks()[0];
+    const settings = track.getSettings();
+
+    selfieCanvas.width = settings.width;
+    selfieCanvas.height = settings.height;
+
+    const ctx = selfieCanvas.getContext("2d");
+
+    // Mirror image (because it's selfie)
+    ctx.save();
+    ctx.scale(-1, 1);
+    ctx.drawImage(selfieVideo, -settings.width, 0, settings.width, settings.height);
+    ctx.restore();
+
+    selfieCanvas.toBlob((blob) => {
+        const file = new File([blob], "selfie.jpg", { type: "image/jpeg" });
+
+        // Fill hidden input so your existing validation still works
+        const dataTransfer = new DataTransfer();
+        dataTransfer.items.add(file);
+        selfieInput.files = dataTransfer.files;
+
+        // Show preview
+        selfiePreview.src = URL.createObjectURL(blob);
+        selfiePreview.style.display = "block";
+
+        // Stop video
+        selfieVideo.style.display = "none";
+        snapBtn.style.display = "none";
+
+        selfieStream.getTracks().forEach(t => t.stop());
+        selfieStream = null;
+
+    }, "image/jpeg", 0.9);
+});
+</script>
+
+
+
+
+
+
+
+
+
+<script>
+  function setupUpload(boxId, inputId, nameId){
+    const box = document.getElementById(boxId);
+    const input = document.getElementById(inputId);
+    const nameField = document.getElementById(nameId);
+
+    box.addEventListener("dragover",(e)=>{
+      e.preventDefault();
+      box.classList.add("drag");
+    });
+    box.addEventListener("dragleave",()=> box.classList.remove("drag"));
+    box.addEventListener("drop",(e)=>{
+      e.preventDefault();
+      box.classList.remove("drag");
+      input.files = e.dataTransfer.files;
+      if(input.files[0]) nameField.textContent = input.files[0].name;
+    });
+
+    input.addEventListener("change",()=>{
+      if(input.files[0]) nameField.textContent = input.files[0].name;
+    });
+  }
+
+  setupUpload("boxFront","idFront","nameFront");
+  setupUpload("boxBack","idBack","nameBack");
+
+//   document.getElementById("nextBtn").addEventListener("click",()=>{
+//     const docType = document.getElementById("docType").value;
+//     const front = idFront.files.length > 0;
+//     const back = idBack.files.length > 0;
+//     const selfie = selfie.files.length > 0;
+
+//     document.querySelectorAll(".error").forEach(el=>el.style.display="none");
+
+//     let ok=true;
+
+//     if(!docType){ errDocType.style.display="block"; ok=false; }
+//     if(!front){ errFront.style.display="block"; ok=false; }
+//     if(!back){ errBack.style.display="block"; ok=false; }
+//     if(!selfie){ errSelfie.style.display="block"; ok=false; }
+
+//     if(!ok) return;
+
+//     window.location.href="kyc-level-3.html";
+//   });
+</script>
+
+
+
+</body>
+</html>

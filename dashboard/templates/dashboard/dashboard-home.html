@@ -1,0 +1,512 @@
+{% load static %}
+{% load humanize %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>AIM-Lend Dashboard</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    body {
+        background: #0d0d0f;
+        font-family: 'Montserrat', sans-serif;
+        color: #fff;
+        overflow-x: hidden; /* FIX SIDE SCROLL */
+    }
+
+    /* NAV */
+    .navbar {
+        width: 100%;
+        padding: 16px 28px;
+        background: rgba(255,255,255,0.04);
+        backdrop-filter: blur(20px);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 1px solid rgba(255,255,255,0.1);
+        position: sticky;
+        top: 0;
+        z-index: 10;
+    }
+
+    .nav-title {
+        font-size: 1.3rem;
+        font-weight: 600;
+    }
+
+    /* PROFILE DROPDOWN */
+    .profile-wrapper {
+        position: relative;
+    }
+
+    .nav-profile {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 16px;
+        border-radius: 10px;
+        cursor: pointer;
+        background: rgba(255,255,255,0.06);
+        border: 1px solid rgba(255,255,255,0.12);
+        transition: 0.25s;
+    }
+
+    .nav-profile:hover {
+        background: rgba(255,255,255,0.1);
+        transform: translateY(-1px);
+    }
+
+    .nav-profile img {
+        width: 22px;
+        filter: invert(1);
+    }
+
+    .badge {
+        background: #00e676;
+        color: #000;
+        font-size: 10px;
+        padding: 2px 6px;
+        border-radius: 10px;
+        font-weight: 700;
+    }
+
+    .dropdown {
+        position: absolute;
+        right: 0;
+        top: 55px;
+        width: 180px;
+        background: rgba(255,255,255,0.08);
+        border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 12px;
+        padding: 10px 0;
+        display: none;
+        backdrop-filter: blur(20px);
+        z-index: 20;
+    }
+
+    .dropdown a {
+        display: block;
+        padding: 12px 16px;
+        color: #fff;
+        text-decoration: none;
+        transition: 0.2s;
+    }
+
+    .dropdown a:hover {
+        background: rgba(255,255,255,0.12);
+    }
+
+    /* PAGE WRAPPER */
+    .wrapper {
+        padding: 40px 20px;
+        max-width: 1000px;
+        margin: auto;
+    }
+
+    .row {
+        display: flex;
+        gap: 20px;
+        flex-wrap: wrap;
+    }
+
+    /* CARDS */
+    .card {
+        background: rgba(255,255,255,0.05);
+        backdrop-filter: blur(20px);
+        padding: 24px;
+        border-radius: 16px;
+        border: 1px solid rgba(255,255,255,0.07);
+        flex: 1;
+        min-width: 280px;
+    }
+
+    .section-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin-bottom: 12px;
+    }
+
+    .big-number {
+        font-size: 2rem;
+        font-weight: 700;
+    }
+
+    .overview-item {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 10px;
+        font-size: 1rem;
+        padding-bottom: 6px;
+        border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+
+    /* FORM */
+    .input-group {
+        margin-top: 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .input-group input,
+    .input-group select {
+        padding: 12px;
+        font-size: 1rem;
+        border-radius: 10px;
+        border: 1px solid rgba(255,255,255,0.15);
+        background: rgba(255,255,255,0.08);
+        color: #fff;
+        outline: none;
+    }
+
+    .submit-btn {
+        margin-top: 20px;
+        width: 100%;
+        padding: 14px;
+        background: linear-gradient(135deg, #7a5cff, #4e39ff);
+        border: none;
+        border-radius: 12px;
+        font-size: 1.05rem;
+        color: #fff;
+        cursor: pointer;
+        transition: .25s;
+    }
+
+    .submit-btn:hover {
+        opacity: .9;
+        transform: translateY(-2px);
+    }
+
+    /* TABLE */
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.95rem;
+        margin-top: 10px;
+    }
+
+    th, td {
+        padding: 14px;
+        border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+
+    th {
+        opacity: 0.8;
+        text-align: left;
+    }
+
+    .status {
+        padding: 6px 10px;
+        border-radius: 8px;
+        font-size: 0.8rem;
+    }
+
+    .active {
+        background: rgba(0,255,153,0.12);
+        color: #00ff99;
+    }
+
+    .pending {
+        background: rgba(255,200,0,0.15);
+        color: #ffdd66;
+    }
+
+    .danger {
+        background: rgba(255,0,0,0.2);
+        color: #ff8080;
+    }
+
+    .rate-box {
+    margin-top: 18px;
+    padding: 14px;
+    border-radius: 12px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.08);
+}
+
+.rate-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 6px 0;
+    font-size: 14px;
+    color: #ddd;
+}
+
+.rate-row span:last-child {
+    font-weight: 600;
+    color: #fff;
+}
+
+</style>
+
+</head>
+<body>
+
+<!-- NAV -->
+<div class="navbar">
+    <div class="nav-title"><a href="{% url 'dashboard:dashboard_view' %}" style="color: #fff; text-decoration: none;">AIM-Lend Dashboard</a></div>
+
+    <div class="profile-wrapper">
+        <div class="nav-profile" onclick="toggleDropdown()">
+            <img src="https://cdn-icons-png.flaticon.com/512/1144/1144760.png">
+            <span>Profile</span>
+            {% if kyc%}
+            <span class="badge" id="kycBadge">Verified</span>
+            {% else %}
+            <span class="badge" id="kycBadge" style="background-color: red;">NO KYC</span>
+            {% endif %}
+        </div>
+
+        <div class="dropdown" id="dropdownMenu">
+            <a href="#">Profile</a>
+            <a href="{% url 'accounts:logout_view' %}">Logout</a>
+        </div>
+    </div>
+</div>
+
+<div class="wrapper">
+    {% block body %}
+
+    <!-- OVERVIEW + LIMIT -->
+    <div class="row">
+        <div class="card">
+            <div class="section-title">Loan Overview</div>
+
+            <div class="overview-item">
+                <span>Total Borrowed</span>
+                <strong>${{ total_borrowed|floatformat:2|intcomma }}</strong>
+            </div>
+
+            <div class="overview-item">
+                <span>Outstanding Debts</span>
+                <strong>${{ outstanding|floatformat:2|intcomma }}</strong>
+            </div>
+
+            <div class="overview-item">
+                <span>Health Factor</span>
+                {% if credit_score >= 0.5 %}
+                <strong style="color:#00e676;">{{ credit_score|floatformat:2 }}</strong>
+                {% else %}
+                <strong style="color:red;">{{ credit_score|floatformat:2 }}</strong>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="card" style="padding-top: 50px;">
+            <div class="section-title">Available Liquidity</div>
+            <div class="big-number">${{ liquidity|floatformat:2 }}</div>
+            <!-- <div style="opacity:.7">Each wallet can borrow a maximum of 0.5 USDC</div> -->
+        </div>
+    </div>
+
+
+    <!-- Deposit FORM -->
+    <div class="card" style="margin-top:28px;">
+        <div class="section-title">Deposit Crypto</div>
+        <div>
+            {% csrf_token %}
+            <input type="hidden" name="wallet" value="{{ wallet }}">
+            <div class="input-group">
+                <label>Choose Asset</label>
+                <select id="Depositasset" style="background-color: #0f1724;" name="asset" required>
+                    <option value="USDC">USDC</option>
+                </select>
+            </div>
+
+            <div class="input-group">
+                <label>Amount</label>
+                <input type="number" id="Depositamount" placeholder="Enter amount" name="amount" required min="1">
+            </div>
+
+            <div class="input-group">
+                <label>Duration</label>
+                <select id="Depositduration" style="background-color: #0f1724;" name="duration" required>
+                    <option value="7">7 Days</option>
+                    <option value="14">14 Days</option>
+                    <option value="30">30 Days</option>
+                    <option value="60">60 Days</option>
+                    <option value="90">90 Days</option>
+                </select>
+            </div>
+
+
+            <div class="rate-box">
+                <div class="rate-row">
+                    <span>Interest Rate:</span>
+                    <span id="interestRate">500% APR</span>
+                </div>
+                <div class="rate-row">
+                    <span>Total to be Withdrawan:</span>
+                    <span id="DepositWithdrawalTotal">0.00</span>
+                </div>
+            </div>
+
+            <button class="submit-btn" id="deposit-btn">Deposit Now</button>
+        </div>
+    </div>
+
+
+
+    <!-- BORROW FORM -->
+    <div class="card" style="margin-top:28px;">
+        <div class="section-title">Borrow Crypto</div>
+        <form action="{% url 'dashboard:dashboard_view' %}" method="post">
+            {% csrf_token %}
+            <input type="hidden" name="wallet" value="{{ wallet }}">
+        <div class="input-group">
+            <label>Choose Asset</label>
+            <select id="asset" style="background-color: #0f1724;" name="asset" required>
+                <option value="USDC">USDC</option>
+            </select>
+        </div>
+
+        <div class="input-group">
+            <label>Amount</label>
+            <input type="number" id="amount" placeholder="Enter amount" name="amount" required min="0.1" max="0.5" step="0.05">
+        </div>
+
+        <div class="input-group">
+            <label>Duration</label>
+            <select id="duration" style="background-color: #0f1724;" name="duration" required>
+                <option value="7">7 Days</option>
+                <option value="14">14 Days</option>
+                <option value="30">30 Days</option>
+                <option value="60">60 Days</option>
+                <option value="90">90 Days</option>
+            </select>
+        </div>
+
+        <!-- Interest Rate Preview -->
+        <div class="rate-box">
+            <div class="rate-row">
+                <span>Interest Rate:</span>
+                <span id="interestRate">1000% APR</span>
+            </div>
+            <div class="rate-row">
+                <span>Total Repayment:</span>
+                <span id="repaymentTotal">0.00</span>
+            </div>
+        </div>
+
+        <button class="submit-btn" type="submit">Borrow Now</button>
+        </form>
+    </div>
+
+    <!-- ACTIVE LOANS -->
+    <div class="card" style="margin-top:30px;">
+        <div class="section-title">Loan History</div>
+        {% if loans %}
+        <table>
+            <tr>
+                <th>Asset</th>
+                <th>Amount</th>
+                <th>Duration</th>
+                <th>Status</th>
+                <th>Action</th>
+            </tr>
+            {% for loan in loans %}
+            <tr>
+                <td>{{ loan.asset_name }}</td>
+                {% if loan.status == "approved" and loan.withdrawn == True and loan.repaid == False %}
+                <td>${{ loan.total_repay_amount|floatformat:2 }}</td>
+                {% else %}
+                <td>${{ loan.approved_amount|floatformat:2 }}</td>
+                {% endif %}
+                <td>{{ loan.loan_duration }} Days</td>
+                {% if loan.status == "approved" and loan.withdrawn == True and loan.repaid == True %}
+                <td><span class="status active">repaid</span></td>
+                {% else %}
+                <td><span class="status active">{{ loan.status }}</span></td>
+                {% endif %}
+                {% if loan.status == "approved" and loan.withdrawn == False and loan.repaid == False %}
+                <td><a href="{% url 'dashboard:claim_view' loan_id=loan.id %}" class="submit-btn" style="margin-top: 0px; font-size: .8rem; padding: 10px; width: 100px;">claim</a></td>
+                {% elif loan.status == "approved" and loan.withdrawn == True and loan.repaid == False %}
+                <td><button class="submit-btn" style="margin-top: 0px; font-size: .8rem; padding: 10px; width: 100px; background: grey;" onclick="repayFunction('{{ loan.onchain_loan_id }}', '{{ loan.total_repay_amount }}', '{{ loan.id }}')">Repay</button></td>
+                {% elif loan.status == "rejected" %}
+                <td><button disabled class="submit-btn" style="margin-top: 0px; font-size: .8rem; padding: 10px; width: 100px; background-color: red;">Rejected</button></td>
+                {% else %}
+                <td><button class="submit-btn" style="margin-top: 0px; font-size: .8rem; padding: 10px; width: 100px;" disabled>Repaid</button></td>
+                {% endif %}
+            </tr>
+            {% endfor %}
+        </table>
+        {% else %}
+        <h3>No Trx History at the moment</h3>
+        {% endif %}
+    </div>
+
+
+    <!-- ACTIVE DEPOSIT -->
+    <div class="card" style="margin-top:30px;">
+        <div class="section-title">Deposit History</div>
+        {% if loans %}
+        <table>
+            <tr>
+                <th>Asset</th>
+                <th>Amount</th>
+                <th>Duration</th>
+                <th>Status</th>
+                <th>Action</th>
+            </tr>
+            {% for deposit in deposits %}
+            <tr>
+                <td>{{ deposit.asset_name }}</td>
+                <td>${{ deposit.total_earned|floatformat:2 }} </td>
+                <td>{{ deposit.deposit_duration }} Days</td>
+                {% if deposit.status and deposit.withdrawn == False %}
+                <td><span class="status active">deposited</span></td>
+                {% else %}
+                <td><span class="status active" style="background-color: gray; color: white;">withdrawn</span></td>
+                {% endif %}
+                {% if deposit.status == True  and deposit.withdrawn == True %}
+                <td><button class="submit-btn" style="margin-top: 0px; font-size: .8rem; padding: 10px; width: 100px; background: gray;" disabled>Withdrawn</button></td>
+                {% elif deposit.status == True and deposit.withdrawn == False %}
+                <td><button class="submit-btn" style="margin-top: 0px; font-size: .8rem; padding: 10px; width: 100px;" onclick="withdrawDepositFunction('{{ deposit.onchain_deposit_id }}', '{{ deposit.deposit_amount }}', '{{ deposit.interest }}', '{{ deposit.due_date }}')">Withdraw</button></td>
+                {% endif %}
+            </tr>
+            {% endfor %}
+        </table>
+        {% else %}
+        <h3>No Trx History at the moment</h3>
+        {% endif %}
+    </div>
+
+    {% endblock body %}
+</div>
+
+
+<script src="https://cdn.jsdelivr.net/npm/web3@1.10.0/dist/web3.min.js"></script>
+
+<script>
+  const LOAN_CONTRACT_ADDRESS = "{{ LOAN_CONTRACT_ADDRESS }}";
+  const WALLET = "{{ wallet }}";
+  const DEPO_URL = "{% url 'dashboard:deposit_view' %}";
+  const DEPO_WITHDRAW_URL = "{% url 'dashboard:withdraw_deposit_view' %}"
+  const REPAY_LOAN_URL = "{% url 'dashboard:repay_loan_view' %}"
+</script>
+
+<script>
+function toggleDropdown() {
+    let menu = document.getElementById("dropdownMenu");
+    menu.style.display = (menu.style.display === "block") ? "none" : "block";
+}
+
+document.addEventListener("click", function(e) {
+    if (!document.querySelector(".profile-wrapper").contains(e.target)) {
+        document.getElementById("dropdownMenu").style.display = "none";
+    }
+});
+
+
+</script>
+    <script src="{% static 'dashboard/js/dashboard.js' %}" type="module"></script>
+</body>
+</html>
