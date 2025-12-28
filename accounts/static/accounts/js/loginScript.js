@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
-    const walletContainer = document.getElementById("walletContainer")
+    const walletContainer = document.getElementById("walletContainer");
     const metamaskBtn = document.getElementById('metamaskBtn');
     const walletConnectBtn = document.getElementById('walletConnectBtn');
     const statusArea = document.getElementById('statusArea');
@@ -150,5 +150,35 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     metamaskBtn.addEventListener('click', connectMetaMask);
+
+
+
+
+
+    async function connectWalletFunction(){
+        try {
+            mobileProvider = new WalletConnectProvider.default({
+                rpc: {
+                    5042002: "https://rpc.testnet.arc.network"
+                },
+                chainId: 5042002,
+                qrcode: true
+            });
+
+            statusArea.innerHTML = `<div style="margin-top:14px;display:flex;gap:12px;align-items:center"><div class="spinner" aria-hidden="true"></div><div style="color:var(--muted)">Connecting to MetaMask...</div></div>`;
+
+            await mobileProvider.enable(); // QR / mobile popup
+
+            web3 = new Web3(mobileProvider);
+            const accounts = await web3.eth.getAccounts();
+
+        } catch (err) {
+            console.error(err);
+            renderError('Connection rejected or failed. Try again.');
+        }
+    }
+
+
+    walletConnectBtn.addEventListener('click', connectWalletFunction);
 
 });

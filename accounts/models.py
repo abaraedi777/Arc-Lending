@@ -9,7 +9,7 @@ class WalletNonce(models.Model):
         ("kyc_consent", "KYC Consent"),
     ]
     wallet = models.CharField(max_length=42)  # Ethereum wallet address
-    nonce = models.CharField(max_length=16)
+    nonce = models.CharField(max_length=128)
     purpose = models.CharField(max_length=20, choices=PURPOSE_CHOICES)
     is_used = models.BooleanField(default=False)
     date_created = models.DateTimeField(auto_now_add=True)
